@@ -27,6 +27,10 @@
 <br />
 <sub>Works on every Mac (M1, M2, M3, M4 &amp; Intel) · No account required · <a href="PRIVACY_POLICY.md"><strong>Privacy Policy (Zero Tracking)</strong></a> · <a href="https://github.com/Aussie-App-Studio/Pix-Relay-Auto-Mac-Sync/releases/latest">All Releases</a> · <a href="LICENSE">License (All Rights Reserved)</a></sub>
 
+<br />
+<br />
+<img src="assets/pix-relay-banner.png" alt="Pix Relay — Private Wi-Fi Sync for Your Backup Pixel" width="820" />
+
 </div>
 
 ---
