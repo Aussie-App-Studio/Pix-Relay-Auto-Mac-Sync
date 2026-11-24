@@ -1,0 +1,46 @@
+[package]
+name = "pix_relay_auto_mac_sync"
+version = "1.0.0"
+description = "Pix Relay: Auto Mac Sync — Ultra-lightweight Mac-to-Pixel encrypted photo & video relay"
+authors = ["Pix Relay"]
+edition = "2021"
+
+[lib]
+name = "pix_relay_auto_mac_sync_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-autostart = "2"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+p256 = { version = "0.13", features = ["ecdh", "pkcs8"] }
+hkdf = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
+aes-gcm = "0.10"
+base64 = "0.22"
+hex = "0.4"
+rand = "0.8"
+uuid = { version = "1", features = ["v4"] }
+subtle = "2"
+rusqlite = { version = "0.32", features = ["bundled"] }
+walkdir = "2"
+notify = "7"
+trash = "5"
+kamadak-exif = "0.5"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "bmp"] }
+mdns-sd = "0.13"
+if-addrs = "0.13"
+socket2 = "0.5"
+chrono = "0.4"
+thiserror = "2"
+dirs = "5"
+percent-encoding = "2"

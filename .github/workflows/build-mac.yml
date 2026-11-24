@@ -1,0 +1,108 @@
+name: Build macOS Universal App & DMG
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust & Universal Apple targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: npm ci || npm install
+
+      - name: Build & typecheck frontend
+        run: npm run build
+
+      - name: Run Rust unit & E2E tests
+        working-directory: src-tauri
+        run: cargo test
+
+      - name: Build Universal macOS .app bundle
+        env:
+          CI: true
+        run: |
+          if [ -n "${{ secrets.APPLE_SIGNING_IDENTITY }}" ]; then
+            export APPLE_CERTIFICATE="${{ secrets.APPLE_CERTIFICATE }}"
+            export APPLE_CERTIFICATE_PASSWORD="${{ secrets.APPLE_CERTIFICATE_PASSWORD }}"
+            export APPLE_SIGNING_IDENTITY="${{ secrets.APPLE_SIGNING_IDENTITY }}"
+            export APPLE_ID="${{ secrets.APPLE_ID }}"
+            export APPLE_PASSWORD="${{ secrets.APPLE_PASSWORD }}"
+            export APPLE_TEAM_ID="${{ secrets.APPLE_TEAM_ID }}"
+          fi
+          npx tauri build --target universal-apple-darwin --bundles app
+
+      - name: Ad-hoc sign unsigned .app for Apple Silicon compatibility
+        if: env.HAS_SIGNING_ID == 'false'
+        env:
+          HAS_SIGNING_ID: ${{ secrets.APPLE_SIGNING_IDENTITY != '' }}
+        run: |
+          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Pix Relay Auto Mac Sync.app"
+          codesign --force --deep --sign - "$APP_PATH"
+          codesign --verify --verbose=2 "$APP_PATH"
+
+      - name: Package Universal .dmg
+        run: |
+          APP_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Pix Relay Auto Mac Sync.app"
+          STAGING_DIR="$(mktemp -d)"
+          cp -R "$APP_PATH" "$STAGING_DIR/"
+          ln -s /Applications "$STAGING_DIR/Applications"
+          hdiutil create \
+            -volname "Pix Relay Auto Mac Sync" \
+            -srcfolder "$STAGING_DIR" \
+            -ov \
+            -format UDZO \
+            "Pix-Relay-Auto-Mac-Sync-Universal.dmg"
+          rm -rf "$STAGING_DIR"
+          ls -lh "Pix-Relay-Auto-Mac-Sync-Universal.dmg"
+
+      - name: Upload macOS Universal DMG as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pix-relay-auto-mac-sync-macos-universal
+          path: Pix-Relay-Auto-Mac-Sync-Universal.dmg
+
+      - name: Publish GitHub Release with DMG (on v* tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Pix Relay: Auto Mac Sync ${{ github.ref_name }}"
+          body: |
+            ## Download for Mac (Apple Silicon M1–M4 & Intel)
+
+            Click **`Pix-Relay-Auto-Mac-Sync-Universal.dmg`** below, open it, and drag **Pix Relay Auto Mac Sync** into your **Applications** folder.
+
+            ### First-Time Open (Mac "Unverified Developer" Bypass — Takes 15 Seconds)
+            Because we don't pay Apple **$99 USD/year** just for a developer certificate on a free app, macOS will ask you to confirm once before opening it:
+            1. Open **Pix Relay Auto Mac Sync** from **Applications** → click **Done** (or **OK**) on the warning popup.
+            2. Open **System Settings** → **Privacy & Security** → scroll to **Security** → click **Open Anyway**.
+            3. Or paste this 1-line command into **Terminal**:
+               ```bash
+               xattr -cr "/Applications/Pix Relay Auto Mac Sync.app"
+               ```
+          files: Pix-Relay-Auto-Mac-Sync-Universal.dmg

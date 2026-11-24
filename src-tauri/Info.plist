@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.photography</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Pix Relay discovers your paired Backup Pixel on your local Wi-Fi network and sends encrypted photos and videos directly to it.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_pixrelay._tcp</string>
+  </array>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>Pix Relay reads originals from your Apple Photos Library so it can back them up to your paired Backup Pixel.</string>
+</dict>
+</plist>
